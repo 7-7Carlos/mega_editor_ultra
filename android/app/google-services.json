@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "289454238431",
+    "project_id": "mega-editor-ultra-449a3",
+    "storage_bucket": "mega-editor-ultra-449a3.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:289454238431:android:3511e05ed9a206654e576a",
+        "android_client_info": {
+          "package_name": "com.carlos7.megaeditorultra"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBRNaiT4UofYVrGMekmnWV1OZYxqFmTIi0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
