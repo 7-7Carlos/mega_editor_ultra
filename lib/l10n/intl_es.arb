@@ -1,0 +1,11 @@
+{
+  "appTitle": "Mega Editor",
+  "welcome": "¡Bienvenido a Mega Editor!",
+  "edit": "Editar",
+  "collaborate": "Colaborar",
+  "marketplace": "Mercado",
+  "settings": "Configuración",
+  "@welcome": {
+     "description": "The welcome message"
+  }
+}

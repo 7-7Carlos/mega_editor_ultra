@@ -1,64 +1,40 @@
-# cloudbuild.yaml
-
 steps:
-  # Este paso utiliza una imagen base de Ubuntu para ejecutar comandos de shell.
   - name: 'ubuntu'
-    args: ['bash', '-c', |
-                           # ---- Configuración del Entorno de Build ----
-                           
-                           # Actualiza la lista de paquetes e instala utilidades necesarias
-                           # (unzip, curl, git, y OpenJDK para las herramientas de build de Android)
-                           apt-get update && apt-get install -y unzip curl git openjdk-17-jdk
-                           
-                           # Define la versión estable de Flutter a descargar.
-                           # Puedes encontrar las últimas versiones en https://docs.flutter.dev/release/archive
-                           # Usaremos una versión estable reciente como ejemplo.
-                           FLUTTER_VERSION='3.22.0-stable' # <-- Puedes cambiar a otra versión si lo necesitas
-                           
-                           # Descarga el SDK de Flutter y extráelo en el directorio /workspace
-                           # /workspace es el directorio por defecto donde Cloud Build clona tu repositorio.
-                           curl -O https://storage.googleapis.com/flutter_releases/releases/stable/linux/flutter_linux_${FLUTTER_VERSION}.tar.xz
-                           tar xvf flutter_linux_${FLUTTER_VERSION}.tar.xz --directory /workspace/
-                           
-                           # Exporta la ruta de Flutter al PATH para que los comandos 'flutter' sean reconocidos en este paso.
-                           export PATH="$PATH:/workspace/flutter/bin"
-                           
-                           # Acepta automáticamente las licencias de Android SDK.
-                           # Esto es necesario para que el primer build de Android funcione sin interacción manual.
-                           # Usamos 'yes' para aceptar todas las preguntas de licencia.
-                           yes | /workspace/flutter/bin/flutter doctor --android-licenses
-                           
-                           # Verifica la configuración de Flutter y Android (opcional, pero útil para depurar el build).
-                           # Esto mostrará si falta algo en el entorno de build.
-                           /workspace/flutter/bin/flutter doctor -v
-                           
-                           # ---- Pasos de Build de Flutter ----
-                           
-                           # Obtiene las dependencias de Flutter definidas en pubspec.yaml.
-                           # Es equivalente a 'flutter pub get'.
-                           /workspace/flutter/bin/flutter pub get
-                           
-                           # Compila la aplicación Flutter en un App Bundle (AAB) para la versión de lanzamiento (release).
-                           # Los AAB son el formato recomendado para publicar en Google Play Store.
-                           # --no-pub: evita que 'pub get' se ejecute de nuevo, ya que ya lo hicimos.
-                           # --target-platform: especifica las arquitecturas de Android (arm64 es estándar para 64 bits).
-                           # Añadimos arm para incluir también 32 bits, común para mayor compatibilidad si es necesario.
-                           /workspace/flutter/bin/flutter build appbundle --release --no-pub --target-platform android-arm64 --target-platform android-arm
-                           
-                           # Si prefieres compilar un APK (por ejemplo, para probar en un dispositivo específico sin Google Play):
-                           # /workspace/flutter/bin/flutter build apk --release --no-pub --target-platform android-arm64 --target-platform android-arm
-                           ]
-      
-      artifacts:
-        objects:
-          # Reemplaza 'mega-editor-builds-7-7carlos' por el nombre de tu bucket real
-          location: 'gs://mega-editor-builds-7-7carlos/build_artefacts/${BUILD_ID}'
-          paths:
-            - 'build/app/outputs/bundle/release/app-release.aab' # Ruta estándar del AAB generado
-      
-      # Opcional: Aumenta el tiempo de espera si la compilación tarda más de los 10 minutos por defecto.
-      # timeout: 1200s # 20 minutos
-      
-      # Opcional: Configura el tipo de máquina si necesitas más CPU/RAM para builds más rápidos.
-      # options:
-      #   machineType: 'E2_HIGHCPU_8' # Usa 8 vCPU, 8GB RAM
+    args:
+      - 'bash'
+      - '-c'
+      - |
+        # ---- Configuración del Entorno de Build ----
+        
+        # Actualiza e instala dependencias
+        apt-get update && apt-get install -y unzip curl git openjdk-17-jdk
+
+        # Define versión de Flutter
+        FLUTTER_VERSION='3.22.0-stable'
+
+        # Descarga y extrae Flutter
+        curl -O https://storage.googleapis.com/flutter_releases/releases/stable/linux/flutter_linux_${FLUTTER_VERSION}.tar.xz
+        tar xvf flutter_linux_${FLUTTER_VERSION}.tar.xz --directory /workspace/
+
+        # Configura PATH de Flutter
+        export PATH="$PATH:/workspace/flutter/bin"
+
+        # Acepta licencias de Android
+        yes | /workspace/flutter/bin/flutter doctor --android-licenses
+
+        # Verifica entorno
+        /workspace/flutter/bin/flutter doctor -v
+
+        # ---- Build de Flutter ----
+        
+        # Obtiene dependencias
+        /workspace/flutter/bin/flutter pub get
+
+        # Compila App Bundle
+        /workspace/flutter/bin/flutter build appbundle --release --no-pub --target-platform android-arm64 --target-platform android-arm
+
+artifacts:
+  objects:
+    location: 'gs://mega-editor-builds-7-7carlos/build_artefacts/${BUILD_ID}'
+    paths:
+      - 'build/app/outputs/bundle/release/app-release.aab'
