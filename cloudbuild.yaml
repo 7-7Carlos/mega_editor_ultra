@@ -4,26 +4,7 @@ steps:
       - 'bash'
       - '-c'
       - |
-        # Configuración del entorno
-        apt-get update && apt-get install -y unzip curl git openjdk-17-jdk
-
-        # Versión de Flutter
-        FLUTTER_VERSION='3.19.6-stable'
-        
-        # Descarga y extracción
-        curl -O https://storage.googleapis.com/flutter_releases/releases/stable/linux/flutter_linux_${FLUTTER_VERSION}.tar.xz
-        tar xvf flutter_linux_${FLUTTER_VERSION}.tar.xz --directory /workspace/
-
-        # Configuración de PATH
-        export PATH="$PATH:/workspace/flutter/bin"
-
-        # Licencias Android
-        yes | flutter doctor --android-licenses
-        flutter doctor -v
-
-        # Build Flutter
-        flutter pub get
-        flutter build appbundle --release --no-pub --target-platform android-arm64
+        # Comandos aquí...
 
 artifacts:
   objects:
@@ -33,4 +14,5 @@ artifacts:
 
 options:
   logging: CLOUD_LOGGING_ONLY
-  timeout: 1200s
+
+timeout: 1200s  # <- Aquí, al mismo nivel que steps, artifacts y options
