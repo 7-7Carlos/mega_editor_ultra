@@ -49,18 +49,10 @@ steps:
                            # /workspace/flutter/bin/flutter build apk --release --no-pub --target-platform android-arm64 --target-platform android-arm
                            ]
       
-      # Define dónde guardar los artefactos compilados (el archivo AAB).
-      # Esto los subirá a un bucket de Google Cloud Storage después de un build exitoso.
       artifacts:
         objects:
-          # **¡IMPORTANTE!** Reemplaza 'YOUR_CLOUD_STORAGE_BUCKET_NAME'
-          # con el nombre de un bucket de Cloud Storage en tu proyecto de Google Cloud.
-          # Puedes crear uno si no tienes. Debe ser un nombre único globalmente.
-          # Ejemplo: 'mega-editor-build-artefacts-carlosreyes'
-          # ${BUILD_ID} es una variable de entorno de Cloud Build que crea una carpeta única por build.
+          # Reemplaza 'mega-editor-builds-7-7carlos' por el nombre de tu bucket real
           location: 'gs://mega-editor-builds-7-7carlos/build_artefacts/${BUILD_ID}'
-          
-          # Ruta(s) a los archivos generados por el comando build, relativos al directorio /workspace.
           paths:
             - 'build/app/outputs/bundle/release/app-release.aab' # Ruta estándar del AAB generado
       
@@ -68,6 +60,5 @@ steps:
       # timeout: 1200s # 20 minutos
       
       # Opcional: Configura el tipo de máquina si necesitas más CPU/RAM para builds más rápidos.
-      # Ten en cuenta que los tipos de máquina más grandes pueden exceder el nivel gratuito más rápido.
       # options:
-    #   machineType: 'E2_HIGHCPU_8' # Usa 8 vCPU, 8GB RAM
+      #   machineType: 'E2_HIGHCPU_8' # Usa 8 vCPU, 8GB RAM
