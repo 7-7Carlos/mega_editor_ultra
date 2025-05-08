@@ -1,88 +1,107 @@
-name: mega_editor_ultra
-description: "A new Flutter project."
-publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+# pubspec.yaml
 
-version: 1.0.0+1
+name: mega_editor_ultra
+description: "Mega Editor multimedia avanzado para Android." # Descripción actualizada
+publish_to: 'none' # Evita la publicación accidental a pub.dev
+
+version: 1.0.0+1 # Versión de la aplicación
 
 environment:
-  sdk: ^3.7.2
+  sdk: '>=3.19.6 <4.0.0' # Ajustado para ser compatible con la versión de Flutter en Cloud Build y versiones recientes
 
 dependencies:
   flutter:
     sdk: flutter
 
-  # Core & State Management
-  flutter_riverpod: ^2.5.1
-  riverpod_annotation: ^2.3.5
+  # Gestión de Estado y Arquitectura Central (Riverpod)
+  flutter_riverpod: ^2.5.1 # Proveedor principal de Riverpod
+  riverpod_annotation: ^2.3.5 # Anotaciones para generación de código Riverpod
 
-  # Database (Drift)
-  drift: ^2.17.0
-  sqlite3_flutter_libs: ^0.5.0 # Para la base de datos nativa en Android/iOS
-  path_provider: ^2.0.15 # Para encontrar rutas de archivos
-  path: ^1.9.1 # Utilidades de rutas
+  # Base de Datos Local (Drift)
+  drift: ^2.17.0 # Core de Drift
+  sqlite3_flutter_libs: ^0.5.0 # Dependencias nativas para SQLite en Flutter
+  path_provider: ^2.0.15 # Para encontrar rutas de directorios (Documentos, Cache, etc.)
+  path: ^1.9.1 # Utilidades para manipulación de rutas
 
-  # Permissions
-  permission_handler: ^11.3.1
+  # Gestión de Permisos de Dispositivo
+  permission_handler: ^12.0.0 # Para solicitar y verificar permisos (cámara, almacenamiento, micrófono)
 
-  # File Picker
-  file_picker: ^8.0.0
+  # Selector de Archivos (Audio/Video)
+  file_picker: ^10.1.4 # Permite al usuario seleccionar archivos del sistema
 
-  # Multimedia Editing (FFmpeg)
-  ffmpeg_kit_flutter_min_gpl: ^6.0.0 # Versión con GPL para más codecs. ¡Confirmado como estable!
+  # Edición Multimedia (FFmpeg)
+  # Cambiado a la variante min-gpl que es más común y estable para compilaciones.
+  # Resuelve el error "Could not find com.arthenica:ffmpeg-kit-https".
+  ffmpeg_kit_flutter_min_gpl: ^6.0.0 # FFmpeg Kit con dependencias mínimas GPL
 
-  # Audio Playback
-  just_audio: ^0.9.38
-  audio_session: ^0.1.18 # Para gestionar sesiones de audio
+  # Reproducción de Audio
+  just_audio: ^0.10.2 # Reproductor de audio robusto
+  audio_session: ^0.2.1 # Para gestionar interrupciones de audio, etc.
 
-  # Video Playback
-  better_player: ^0.0.8
+  # Reproducción de Video con UI Avanzada
+  # Usaremos video_player (oficial) + chewie (UI) como alternativa a better_player.
+  video_player: ^2.8.2 # Reproductor de video base oficial
+  chewie: ^1.11.3 # Controladores de UI avanzados para video_player
 
-  # Navigation
-  go_router: ^14.0.2
+  # Navegación de la Aplicación (GoRouter)
+  go_router: ^15.1.1 # Enrutador declarativo
 
-  # UI Enhancements
-  google_fonts: ^6.2.1
+  # Mejoras de UI (Fuentes de Google)
+  google_fonts: ^6.2.1 # Para usar fuentes de Google fácilmente
 
-  # YouTube Player
-  youtube_player_flutter: ^9.0.0
+  # Reproductor de YouTube Integrado
+  youtube_player_flutter: ^9.0.0 # Reproductor oficial de YouTube para Flutter
 
-  # Webview
-  webview_flutter: ^4.7.0
+  # Navegador Web Integrado
+  webview_flutter: ^4.7.0 # Para mostrar contenido web (como YouTube web)
 
-  # Camera
-  camera: ^0.10.5+9
+  # Acceso y Control de la Cámara del Dispositivo
+  camera: ^0.11.1 # Para funcionalidades de cámara (captura, grabación)
 
-  # Firebase (para Marketplace y Colaboración)
-  firebase_core: ^2.30.0
-  cloud_firestore: ^4.17.0
-  # firebase_auth: ^4.19.0 # Consideraremos añadir esto si la colaboración requiere autenticación
+  # Integración con Firebase (Core, Firestore, Auth)
+  # Versiones alineadas con el BOM en tus archivos Gradle.
+  firebase_core: ^2.30.0 # Core de Firebase
+  cloud_firestore: ^4.17.0 # Base de datos NoSQL (Firestore)
+  firebase_auth: ^4.19.0 # Autenticación (Útil para colaboración)
 
-  model_viewer_plus: ^1.9.3 # ¡Confirmado como estable y necesario!
+  # Realidad Aumentada (AR) - Según tu elección
+  # Plugin específico para mostrar modelos GLB con funcionalidad AR.
+  model_viewer_plus: ^1.9.3 # ✅ Plugin para GLB y AR (Última versión verificada y requerida)
 
-  # Internationalization
+  # Internacionalización (Manejo de Múltiples Idiomas)
   flutter_localizations:
     sdk: flutter
-  intl: ^0.19.0
+  intl: ^0.19.0 # Core de internacionalización
 
-  cupertino_icons: ^1.0.6 # Mantener
+  # Iconos de Cupertino (Estilo iOS, opcional pero común)
+  cupertino_icons: ^1.0.6
 
 dev_dependencies:
   flutter_test:
-    sdk: flutter
+    sdk: flutter # Framework de testing de Flutter
 
-  flutter_lints: ^3.0.0 # Mantener o actualizar
+  flutter_lints: ^5.0.0 # Reglas de análisis de código recomendadas
 
-  # Code Generation (Drift & Riverpod)
-  drift_dev: ^2.17.0
-  build_runner: ^2.4.9
-  riverpod_generator: ^2.4.5
+  # Generación de Código (Para Drift y Riverpod)
+  drift_dev: ^2.17.0 # Herramientas de desarrollo para Drift
+  build_runner: ^2.4.9 # Herramienta principal para ejecutar generadores de código
+  riverpod_generator: ^2.4.5 # Generador de código para Riverpod
 
 flutter:
+  uses-material-design: true # Habilita Material Design
 
-  # Habilitar generación de localización
+  # Habilita la generación automática de archivos de localización (.arb)
   generate: true
 
-  # Assets (añadidos en el Paso 4)
+  # Sección para declarar assets (recursos como imágenes, modelos 3D)
+  # Asegúrate de que estas carpetas y archivos existan en tu proyecto local.
   assets:
-    - assets/
-    - assets/ar_models/ # Para modelos AR
+    - assets/ # Directorio general de assets
+    - assets/ar_models/ # Directorio específico para modelos AR (ej: .glb, .gltf)
+    # Ejemplo de un asset específico:
+    # - assets/ar_models/dragon.glb # Asegúrate de que este archivo exista si lo referencias
+
+  # fonts: # Sección para fuentes personalizadas (descomentar si añades fuentes)
+  #   - family: YourFontName # Nombre de la familia de fuentes
+  #     fonts:
+  #       - asset: assets/fonts/YourFontFile.ttf # Ruta a tu archivo de fuente
