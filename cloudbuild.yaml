@@ -1,133 +1,33 @@
-# cloudbuild.yaml
-# Archivo de configuración para Google Cloud Build para compilar un proyecto Flutter.
-
 steps:
-  # Un build consiste en una secuencia de pasos. Cada paso se ejecuta en un contenedor.
-
-  # Paso 1: Configurar el entorno de build e instalar Flutter SDK.
-  # Usamos una imagen base de Ubuntu, que nos permite ejecutar comandos de shell estándar.
-  - name: 'ubuntu' # Nombre de la imagen del builder (Ubuntu).
-    # Los argumentos para el comando ejecutado en el contenedor.
-    # Aquí usamos bash -c para ejecutar un script de shell multilinea.
+  - name: 'ubuntu'
     args:
-      - 'bash' # Ejecutar bash.
-      - '-c'   # La opción -c indica que el siguiente argumento es un comando/script.
-      # El indicador de bloque '|' permite escribir un string multilinea (nuestro script bash).
-      # Las líneas siguientes son parte del script, y SU INDENTACIÓN es CRUCIAL.
-      # Deben estar indentadas al menos 2 espacios más que la línea con '-c'.
+      - 'bash'
+      - '-c'
       - |
         # ---- Configuración del Entorno de Build ----
 
-        # Actualiza la lista de paquetes del sistema e instala utilidades necesarias:
-        # unzip, curl, git: Para descargar y extraer el SDK de Flutter.
-        # openjdk-17-jdk: Necesario para las herramientas de build de Android (gradlew, etc.).
-        echo "Actualizando paquetes e instalando dependencias..."
-        apt-get update && apt-get install -y --no-install-recommends unzip curl git openjdk-17-jdk
+        apt-get update && apt-get install -y unzip curl git openjdk-17-jdk
 
-        # --- Instalación del SDK de Flutter ---
-        # Define la versión estable de Flutter a descargar.
-        # Puedes encontrar las últimas versiones en https://docs.flutter.dev/release/archive
-        # Usaremos una versión estable que sabemos que es robusta.
-        FLUTTER_VERSION='3.19.6-stable' # <-- Versión estable comprobada.
-        FLUTTER_TARBALL="flutter_linux_${FLUTTER_VERSION}.tar.xz"
-        FLUTTER_DOWNLOAD_URL="https://storage.googleapis.com/flutter_releases/releases/stable/linux/${FLUTTER_TARBALL}"
+        FLUTTER_VERSION='3.22.0-stable'
 
-        echo "Descargando Flutter SDK versión: ${FLUTTER_VERSION} desde ${FLUTTER_DOWNLOAD_URL}"
-        curl -f --output ${FLUTTER_TARBALL} ${FLUTTER_DOWNLOAD_URL} || { echo "Error al descargar Flutter SDK"; exit 1; }
+        curl -O https://storage.googleapis.com/flutter_releases/releases/stable/linux/flutter_linux_${FLUTTER_VERSION}.tar.xz
+        tar xvf flutter_linux_${FLUTTER_VERSION}.tar.xz --directory /workspace/
 
-        echo "Extrayendo Flutter SDK a /workspace/flutter..."
-        # Crea la carpeta destino para Flutter dentro del directorio de trabajo de Cloud Build.
-        mkdir -p /workspace/flutter
-        # Extrae el contenido del tarball descargado.
-        # --strip-components=1 elimina la carpeta de nivel superior ('flutter/') del tarball.
-        tar xvf ${FLUTTER_TARBALL} --directory /workspace/flutter --strip-components=1 || { echo "Error al extraer Flutter SDK"; exit 1; }
-
-        # Verifica si la extracción fue exitosa comprobando la existencia de la carpeta bin.
-        if [ ! -d "/workspace/flutter/bin" ]; then
-          echo "Error: La extracción de Flutter SDK falló o la ruta /workspace/flutter/bin no existe."
-          exit 1
-        fi
-
-        # Exporta la ruta del directorio 'bin' de Flutter al PATH del entorno de este paso.
-        # Esto hace que los comandos 'flutter' estén disponibles.
-        echo "Configurando PATH para Flutter..."
         export PATH="$PATH:/workspace/flutter/bin"
 
-        # --- Configuración de Android ---
-        # Acepta automáticamente las licencias de Android SDK.
-        # Esto es fundamental para que el build de Android funcione en un entorno automatizado.
-        # Usamos 'yes |' para aceptar todas las preguntas de licencia sin interacción.
-        echo "Aceptando licencias de Android SDK..."
-        yes | /workspace/flutter/bin/flutter doctor --android-licenses || echo "Error al aceptar licencias (puede que no sea crítico si ya están aceptadas en la imagen)."
+        yes | /workspace/flutter/bin/flutter doctor --android-licenses
 
-        # Opcional: Ejecuta 'flutter doctor' completo para verificar la configuración del entorno de build.
-        # Es útil para depurar si el build falla más adelante.
-        echo "Ejecutando flutter doctor -v para verificar la configuración del entorno de build..."
         /workspace/flutter/bin/flutter doctor -v
 
-        # ---- Pasos de Build de Flutter ----
+        /workspace/flutter/bin/flutter pub get
 
-        # El directorio de trabajo por defecto de Cloud Build es /workspace, que es la raíz de tu repo clonado.
-        # No necesitas 'cd' a menos que tu pubspec.yaml o código fuente no estén en la raíz.
+        /workspace/flutter/bin/flutter build appbundle --release --no-pub --target-platform android-arm64 --target-platform android-arm
 
-        # Obtiene las dependencias de Flutter definidas en pubspec.yaml.
-        echo "Ejecutando flutter pub get..."
-        /workspace/flutter/bin/flutter pub get || { echo "Error al ejecutar flutter pub get"; exit 1; }
-
-        # Compila la aplicación Flutter en un App Bundle (AAB) para la versión de lanzamiento (release).
-        # Los AAB son el formato recomendado para publicar en Google Play Store.
-        # --no-pub: importante para evitar que 'pub get' se ejecute de nuevo, ya que lo hicimos antes.
-        # --target-platform: especifica las arquitecturas de Android. android-arm64 es estándar.
-        # Añadimos android-arm si necesitas compatibilidad con dispositivos de 32 bits (aunque cada vez son menos comunes).
-        echo "Ejecutando flutter build appbundle --release..."
-        /workspace/flutter/bin/flutter build appbundle --release --no-pub --target-platform android-arm64 || { echo "Error al ejecutar flutter build appbundle"; exit 1; }
-
-        # Si prefieres compilar un APK (por ejemplo, para probar en un dispositivo específico sin Google Play):
-        # echo "Ejecutando flutter build apk --release..."
-        # /workspace/flutter/bin/flutter build apk --release --no-pub --target-platform android-arm64 || { echo "Error al ejecutar flutter build apk"; exit 1; }
-
-# Define dónde Google Cloud Build debe encontrar los archivos generados (artefactos)
-# y a qué bucket de Google Cloud Storage debe subirlos después de un build exitoso.
 artifacts:
   objects:
-    # **¡IMPORTANTE!** Este es el bucket que tú configuraste. Google Cloud Build subirá
-    # los archivos listados en 'paths' a esta ubicación en Cloud Storage.
-    location: 'gs://mega-editor-builds-7-7carlos/build_artefacts/${BUILD_ID}' # Usando tu bucket
-
-    # Lista de rutas a los archivos generados por el comando 'build'.
-    # Las rutas son relativas al directorio /workspace (la raíz de tu repositorio clonado).
+    location: 'gs://mega-editor-builds-7-7carlos/build_artefacts/${BUILD_ID}'
     paths:
-      - 'build/app/outputs/bundle/release/app-release.aab' # Ruta estándar del AAB generado por 'build appbundle'.
-    # Si decidiste compilar APKs, cambia esta ruta por la(s) ruta(s) del(los) APK(s), ej:
-    # - 'build/app/outputs/apk/release/app-release.apk'
+      - 'build/app/outputs/bundle/release/app-release.aab'
 
-# Opciones de configuración adicionales para la compilación.
 options:
-  # **¡CRUCIAL!** Configura cómo Google Cloud Build debe manejar los registros de la compilación.
-  # El error que viste indica que esto es necesario con tu configuración actual.
-  # 'CLOUD_LOGGING': Envía los logs al servicio gestionado de Google Cloud Logging. Es la opción más fácil y común.
-  # Esto resuelve el error "build_logs_bucket is required" o relacionado con logs.
-  logging: CLOUD_LOGGING
-
-  # Opcional: Configura si quieres ver los logs en tiempo real mientras la compilación se ejecuta.
-  # Puede ser útil para depurar builds largos o complejos.
-  # logStreamingOption: STREAMING # Habilita el streaming de logs.
-
-  # Opcional: Configura un tiempo máximo para la compilación. El valor por defecto es 10 minutos (600s).
-  # Las compilaciones de Flutter, especialmente la primera, pueden tardar más.
-  timeout: 1200s # Establece el tiempo máximo en 20 minutos (1200 segundos). Ajusta si es necesario.
-
-  # Opcional: Usa un tipo de máquina virtual con más CPU/RAM para builds potencialmente más rápidos.
-  # Ten en cuenta que esto puede consumir tus minutos de nivel gratuito más rápidamente.
-  # El tipo de máquina por defecto (e2-medium: 1 vCPU, 4GB RAM) es el que usa el nivel gratuito principalmente.
-  # machineType: 'E2_HIGHCPU_8' # Usa 8 vCPU, 8GB RAM - para builds más rápidos (fuera del nivel gratuito extendido).
-
-# Sustituciones (opcional, no necesario para este build básico).
-# Puedes definir variables aquí para reutilizarlas en el archivo y hacer la configuración más flexible.
-# Por ejemplo, podrías definir la versión de Flutter o el nombre del bucket como variables.
-# No es estrictamente necesario para este build básico, pero es una buena práctica.
-# Ejemplo:
-# substitutions:
-#   _FLUTTER_VERSION: '3.19.6-stable'
-#   _ARTIFACT_BUCKET: 'mega-editor-builds-7-7carlos'
-# Luego usarías $(_FLUTTER_VERSION) en el curl y $(_ARTIFACT_BUCKET) en location.
+  logging: CLOUD_LOGGING_ONLY
