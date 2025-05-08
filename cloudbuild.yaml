@@ -4,24 +4,22 @@ steps:
       - 'bash'
       - '-c'
       - |
-        # ---- Configuración del Entorno de Build ----
-
+        # Instalamos dependencias
         apt-get update && apt-get install -y unzip curl git openjdk-17-jdk
-
-        FLUTTER_VERSION='3.22.0-stable'
-
+        
+        # Definimos la versión usando una variable de shell (no una sustitución de Cloud Build)
+        export FLUTTER_VERSION="3.22.0-stable"
+        
+        # Descargamos y extraemos Flutter
         curl -O https://storage.googleapis.com/flutter_releases/releases/stable/linux/flutter_linux_${FLUTTER_VERSION}.tar.xz
         tar xvf flutter_linux_${FLUTTER_VERSION}.tar.xz --directory /workspace/
-
+        
+        # Exportamos la ruta y ejecutamos comandos de Flutter
         export PATH="$PATH:/workspace/flutter/bin"
-
-        yes | /workspace/flutter/bin/flutter doctor --android-licenses
-
-        /workspace/flutter/bin/flutter doctor -v
-
-        /workspace/flutter/bin/flutter pub get
-
-        /workspace/flutter/bin/flutter build appbundle --release --no-pub --target-platform android-arm64 --target-platform android-arm
+        yes | flutter doctor --android-licenses
+        flutter doctor -v
+        flutter pub get
+        flutter build appbundle --release --no-pub --target-platform android-arm64
 
 artifacts:
   objects:
